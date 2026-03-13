@@ -4,18 +4,19 @@ import { useBoardStore } from "../store/boardStore";
 import { useToolStore } from "../store/toolStore";
 import { useViewportStore } from "../store/viewportStore";
 import { useSelectionStore } from "../store/selectionStore";
-import {
-  hitTestStroke,
-  hitTestRectangle,
-} from "../engine/geometry/hitTest";
-import { getSelectionBounds } from "../engine/geometry/bounds";
+import { hitTestStroke, hitTestRectangle } from "../engine/geometry/hitTest";
+import { getSelectionBounds, getBounds } from "../engine/geometry/bounds";
 import {
   getHandleUnderPoint,
   type Handle,
 } from "../engine/geometry/resizeHandles";
 import { snapToGrid } from "../engine/snapping/snapToGrid";
 
-import type { StrokeElement, RectangleElement } from "../models/element";
+import type {
+  StrokeElement,
+  RectangleElement,
+  Element,
+} from "../models/element";
 
 export function usePointerDraw() {
   const engineRef = useRef(new DrawingEngine());
@@ -25,8 +26,11 @@ export function usePointerDraw() {
   const dragRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
   const resizeHandleRef = useRef<Handle | null>(null);
+  const marqueeActiveRef = useRef(false);
 
   const selectedIds = useSelectionStore((s) => s.selectedIds);
+  const marquee = useSelectionStore((s) => s.marquee);
+  const setMarquee = useSelectionStore((s) => s.setMarquee);
 
   const tool = useToolStore((s) => s.tool);
   const color = useToolStore((s) => s.color);
@@ -51,15 +55,15 @@ export function usePointerDraw() {
 
     lastPointRef.current = point;
 
-    const elements = useBoardStore.getState().elements;
+    const elements = useBoardStore.getState().elements as Element[];
 
     /*
-    Selection Tool
+    Selection Tool (hit test + marquee start)
     */
 
     if (tool === "select") {
       const selectedElements = elements.filter((el) =>
-        selectedIds.includes(el.id)
+        selectedIds.includes(el.id),
       );
 
       if (selectedElements.length > 0) {
@@ -78,19 +82,11 @@ export function usePointerDraw() {
         .reverse()
         .find((el) => {
           if (el.type === "stroke") {
-            return hitTestStroke(
-              point.x,
-              point.y,
-              el as StrokeElement
-            );
+            return hitTestStroke(point.x, point.y, el as StrokeElement);
           }
 
           if (el.type === "rectangle") {
-            return hitTestRectangle(
-              point.x,
-              point.y,
-              el as RectangleElement
-            );
+            return hitTestRectangle(point.x, point.y, el as RectangleElement);
           }
 
           return false;
@@ -105,7 +101,14 @@ export function usePointerDraw() {
 
         dragRef.current = true;
       } else {
-        useSelectionStore.getState().clearSelection();
+        // start marquee
+        marqueeActiveRef.current = true;
+        setMarquee({
+          x: point.x,
+          y: point.y,
+          width: 0,
+          height: 0,
+        });
       }
 
       return;
@@ -259,6 +262,16 @@ export function usePointerDraw() {
       return;
     }
 
+    // update marquee while dragging
+    if (tool === "select" && marqueeActiveRef.current && marquee) {
+      setMarquee({
+        ...marquee,
+        width: point.x - marquee.x,
+        height: point.y - marquee.y,
+      });
+      return;
+    }
+
     /*
     Continue drawing stroke
     */
@@ -286,6 +299,36 @@ export function usePointerDraw() {
       return;
     }
 
+    // finalize marquee selection
+    if (marqueeActiveRef.current && marquee) {
+      const elements = useBoardStore.getState().elements as Element[];
+
+      const box = {
+        x: Math.min(marquee.x, marquee.x + marquee.width),
+        y: Math.min(marquee.y, marquee.y + marquee.height),
+        width: Math.abs(marquee.width),
+        height: Math.abs(marquee.height),
+      };
+
+      const intersects = (
+        a: { x: number; y: number; width: number; height: number },
+        b: { x: number; y: number; width: number; height: number },
+      ) => {
+        return !(
+          a.x + a.width < b.x ||
+          a.x > b.x + b.width ||
+          a.y + a.height < b.y ||
+          a.y > b.y + b.height
+        );
+      };
+
+      const selected = elements.filter((el) => intersects(box, getBounds(el)));
+
+      useSelectionStore.getState().setSelection(selected.map((e) => e.id));
+
+      setMarquee(null);
+      marqueeActiveRef.current = false;
+    }
     /*
     Commit stroke
     */

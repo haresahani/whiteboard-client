@@ -79,3 +79,14 @@ export function getSelectionBounds(elements: Element[]) {
 
   return { minX, minY, maxX, maxY };
 }
+
+// Bounds as box {x,y,width,height}
+export function getBounds(element: Element) {
+  const { minX, minY, maxX, maxY } = getElementBounds(element);
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
