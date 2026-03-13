@@ -3,75 +3,10 @@ import type {
   StrokeElement,
   RectangleElement,
 } from "../models/element";
-
-import { drawSmoothStroke } from "./smoothing";
 import { renderGrid } from "./grid";
 import { getSelectionBounds } from "./geometry/bounds";
 import { useSelectionStore } from "../store/selectionStore";
-
-/*
-----------------------------------------
-Draw Stroke Element
-----------------------------------------
-*/
-function drawStroke(
-  ctx: CanvasRenderingContext2D,
-  stroke: StrokeElement,
-  selected = false,
-) {
-  if (stroke.points.length < 2) return;
-
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-
-  const { strokeColor, strokeWidth } = stroke.style;
-
-  if (strokeColor === "eraser") {
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.strokeStyle = "rgba(0,0,0,1)";
-    ctx.lineWidth = strokeWidth;
-  } else {
-    ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth = strokeWidth;
-  }
-
-  drawSmoothStroke(ctx, stroke.points);
-
-  if (selected) {
-    ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = strokeWidth + 3;
-    drawSmoothStroke(ctx, stroke.points);
-  }
-}
-
-/*
-----------------------------------------
-Draw Rectangle
-----------------------------------------
-*/
-function drawRectangle(
-  ctx: CanvasRenderingContext2D,
-  rect: RectangleElement,
-  selected = false,
-) {
-  const { strokeColor, strokeWidth } = rect.style;
-
-  ctx.globalCompositeOperation = "source-over";
-  ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = strokeWidth;
-
-  ctx.beginPath();
-  ctx.rect(rect.x, rect.y, rect.width, rect.height);
-  ctx.stroke();
-
-  if (selected) {
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = strokeWidth + 2;
-    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-  }
-}
+import { drawElement } from "./shapes/shapeRegistry";
 
 export function normalizeBox(box: {
   x: number;
@@ -206,30 +141,21 @@ export function renderElements(
 
   for (const element of elements) {
     const selected = selectedIds.includes(element.id);
-
-    switch (element.type) {
-      case "stroke":
-        drawStroke(ctx, element, selected);
-        break;
-
-      case "rectangle":
-        drawRectangle(ctx, element, selected);
-        break;
-    }
+    drawElement(ctx, element, selected);
   }
 
   /*
 Render temporary stroke while drawing
 */
   if (tempStroke) {
-    drawStroke(ctx, tempStroke);
+    drawElement(ctx, tempStroke, false);
   }
 
   /*
 Render temporary rectangle while drawing
 */
   if (tempRectangle) {
-    drawRectangle(ctx, tempRectangle);
+    drawElement(ctx, tempRectangle, false);
   }
 
   const marquee = useSelectionStore.getState().marquee;
