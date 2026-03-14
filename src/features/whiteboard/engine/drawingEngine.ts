@@ -1,6 +1,7 @@
 import type {
   StrokeElement,
   RectangleElement,
+  ArrowElement,
   Point,
 } from "../models/element";
 import { generateUUID } from "../../../lib/utils";
@@ -8,6 +9,7 @@ import { generateUUID } from "../../../lib/utils";
 export class DrawingEngine {
   private currentStroke: StrokeElement | null = null;
   private currentRectangle: RectangleElement | null = null;
+  private currentArrow: ArrowElement | null = null;
 
   /*
   ----------------------------------------
@@ -100,5 +102,44 @@ export class DrawingEngine {
 
   getCurrentRectangle() {
     return this.currentRectangle;
+  }
+
+  // Start Arrow
+  startArrow(point: Point, color: string, width: number) {
+    this.currentArrow = {
+      id: generateUUID(),
+      type: "arrow",
+      x: point.x,
+      y: point.y,
+      start: point,
+      end: point,
+      rotation: 0,
+      zIndex: 0,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      style: {
+        strokeColor: color,
+        strokeWidth: width,
+      },
+    };
+  }
+
+  //Update Arrow
+  updateArrow(point: Point) {
+    if (!this.currentArrow) return;
+
+    this.currentArrow.end = point;
+  }
+
+  //End Arrow
+  endArrow() {
+    const arrow = this.currentArrow;
+    this.currentArrow = null;
+    return arrow;
+  }
+
+  //Getter
+  getCurrentArrow() {
+    return this.currentArrow;
   }
 }

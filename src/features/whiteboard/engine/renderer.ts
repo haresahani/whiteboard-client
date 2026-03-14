@@ -1,12 +1,9 @@
-import type {
-  Element,
-  StrokeElement,
-  RectangleElement,
-} from "../models/element";
+import type { Element } from "../models/element";
+// import { drawSmoothStroke } from "./smoothing";
 import { renderGrid } from "./grid";
 import { getSelectionBounds } from "./geometry/bounds";
 import { useSelectionStore } from "../store/selectionStore";
-import { drawElement } from "./shapes/shapeRegistry";
+import { drawElement} from "./shapes/shapeRegistry";
 
 export function normalizeBox(box: {
   x: number;
@@ -120,8 +117,7 @@ Main Renderer
 export function renderElements(
   ctx: CanvasRenderingContext2D,
   elements: Element[],
-  tempStroke: StrokeElement | null,
-  tempRectangle: RectangleElement | null,
+  tempElement: Element | null,
   offsetX = 0,
   offsetY = 0,
   zoom = 1,
@@ -144,18 +140,13 @@ export function renderElements(
     drawElement(ctx, element, selected);
   }
 
-  /*
-Render temporary stroke while drawing
-*/
-  if (tempStroke) {
-    drawElement(ctx, tempStroke, false);
-  }
-
-  /*
-Render temporary rectangle while drawing
-*/
-  if (tempRectangle) {
-    drawElement(ctx, tempRectangle, false);
+  // Renderer temporary element
+  if (tempElement) {
+    // const shape = getShape(tempElement.type);
+    // if (shape) {
+    //   shape.draw(ctx, tempElement, false);
+    // }
+    drawElement(ctx, tempElement, false);
   }
 
   const marquee = useSelectionStore.getState().marquee;

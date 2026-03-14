@@ -35,7 +35,26 @@ export default function Toolbar() {
         Pen
       </button>
 
-      <button onClick={() => setTool("rectangle")}>Rectangle</button>
+      <button
+        onClick={() => setTool("rectangle")}
+        className={
+          tool === "rectangle"
+            ? "bg-blue-500 px-3 py-1 rounded"
+            : "px-3 py-1"
+        }
+      >
+        Rectangle
+      </button>
+
+      {/* Arrow */}
+      <button
+        onClick={() => setTool("arrow")}
+        className={
+          tool === "arrow" ? "bg-blue-500 px-3 py-1 rounded" : "px-3 py-1"
+        }
+      >
+        Arrow
+      </button>
 
       {/* Eraser */}
       <button

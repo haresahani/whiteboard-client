@@ -2,12 +2,14 @@ import type { Element, ElementType } from "../../models/element";
 import type { Shape } from "./Shape";
 import { strokeShape } from "./strokeShape";
 import { rectangleShape } from "./rectangleShape";
+import { arrowShape } from "./arrowShape";
 
 type ShapeMap = Partial<Record<ElementType, Shape<Element>>>;
 
 const registry: ShapeMap = {
   stroke: strokeShape,
   rectangle: rectangleShape,
+  arrow: arrowShape,
 };
 
 export function getShape(type: ElementType): Shape<Element> | undefined {

@@ -11,7 +11,11 @@ import {
 } from "../engine/geometry/resizeHandles";
 import { snapToGrid } from "../engine/snapping/snapToGrid";
 
-import type { StrokeElement, RectangleElement, Element } from "../models/element";
+import type {
+  StrokeElement,
+  RectangleElement,
+  Element,
+} from "../models/element";
 import { hitTestElement } from "../engine/shapes/shapeRegistry";
 
 export function usePointerDraw() {
@@ -123,6 +127,11 @@ export function usePointerDraw() {
     if (tool === "rectangle") {
       engineRef.current.startRectangle(point, color, width);
       return;
+    }
+
+    //Arrow
+    if (tool === "arrow") {
+      engineRef.current.startArrow(point, color, width);
     }
   }
 
@@ -264,7 +273,13 @@ export function usePointerDraw() {
 
     if (e.buttons !== 1) return;
 
+    //Arrow
+    if (tool === "arrow") {
+      engineRef.current.updateArrow(point);
+    }
+
     engineRef.current.addPoint(point);
+    console.log(engineRef.current.getCurrentArrow());
   }
 
   /*
@@ -278,7 +293,9 @@ export function usePointerDraw() {
     lastPointRef.current = null;
     resizeHandleRef.current = null;
 
+    const element = engineRef.current.endStroke();
     const rect = engineRef.current.endRectangle();
+    const arrow = engineRef.current.endArrow();
 
     if (rect) {
       addElement(rect);
@@ -319,10 +336,13 @@ export function usePointerDraw() {
     Commit stroke
     */
 
-    const element = engineRef.current.endStroke();
-
     if (element) {
       addElement(element);
+    }
+
+    //Arrow
+    if (arrow) {
+      useBoardStore.getState().addElement(arrow);
     }
   }
 

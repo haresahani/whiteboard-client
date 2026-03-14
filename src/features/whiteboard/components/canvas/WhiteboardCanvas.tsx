@@ -12,7 +12,7 @@ import {
   type Handle,
 } from "../../engine/geometry/resizeHandles";
 import { getSelectionBounds } from "../../engine/geometry/bounds";
-import type { Element, StrokeElement } from "../../models/element";
+import type { Element } from "../../models/element";
 
 export default function WhiteboardCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -71,14 +71,18 @@ export default function WhiteboardCanvas() {
     let animationFrameId: number;
 
     const render = () => {
-      const tempStroke = engineRef.current.getCurrentStroke();
-      const tempRectangle = engineRef.current.getCurrentRectangle();
+      // const tempStroke = engineRef.current.getCurrentStroke();
+      // const tempRectangle = engineRef.current.getCurrentRectangle();
+      // const tempArrow = engineRef.current.getCurrentArrow();
+      const tempElement =
+        engineRef.current.getCurrentStroke() ||
+        engineRef.current.getCurrentRectangle() ||
+        engineRef.current.getCurrentArrow();
 
       renderElements(
         ctx,
         elements,
-        tempStroke,
-        tempRectangle,
+        tempElement,
         offsetX,
         offsetY,
         zoom,
