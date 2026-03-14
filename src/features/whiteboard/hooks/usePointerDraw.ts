@@ -4,7 +4,6 @@ import { useBoardStore } from "../store/boardStore";
 import { useToolStore } from "../store/toolStore";
 import { useViewportStore } from "../store/viewportStore";
 import { useSelectionStore } from "../store/selectionStore";
-import { hitTestStroke, hitTestRectangle } from "../engine/geometry/hitTest";
 import { getSelectionBounds, getBounds } from "../engine/geometry/bounds";
 import {
   getHandleUnderPoint,
@@ -12,11 +11,8 @@ import {
 } from "../engine/geometry/resizeHandles";
 import { snapToGrid } from "../engine/snapping/snapToGrid";
 
-import type {
-  StrokeElement,
-  RectangleElement,
-  Element,
-} from "../models/element";
+import type { StrokeElement, RectangleElement, Element } from "../models/element";
+import { hitTestElement } from "../engine/shapes/shapeRegistry";
 
 export function usePointerDraw() {
   const engineRef = useRef(new DrawingEngine());
@@ -80,17 +76,7 @@ export function usePointerDraw() {
       const hit = [...elements]
         .slice()
         .reverse()
-        .find((el) => {
-          if (el.type === "stroke") {
-            return hitTestStroke(point.x, point.y, el as StrokeElement);
-          }
-
-          if (el.type === "rectangle") {
-            return hitTestRectangle(point.x, point.y, el as RectangleElement);
-          }
-
-          return false;
-        });
+        .find((el) => hitTestElement(point.x, point.y, el));
 
       if (hit) {
         if (e.shiftKey) {

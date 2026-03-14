@@ -35,5 +35,21 @@ export const strokeShape: Shape<StrokeElement> = {
   hitTest(x, y, stroke) {
     return hitTestStroke(x, y, stroke);
   },
+
+  getBounds(stroke) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const p of stroke.points) {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    }
+
+    return { minX, minY, maxX, maxY };
+  },
 };
 

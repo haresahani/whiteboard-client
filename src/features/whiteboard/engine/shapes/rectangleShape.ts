@@ -24,4 +24,13 @@ export const rectangleShape: Shape<RectangleElement> = {
   hitTest(x, y, rect) {
     return hitTestRectangle(x, y, rect);
   },
+
+  getBounds(rect) {
+    return {
+      minX: rect.x,
+      minY: rect.y,
+      maxX: rect.x + rect.width,
+      maxY: rect.y + rect.height,
+    };
+  },
 };
