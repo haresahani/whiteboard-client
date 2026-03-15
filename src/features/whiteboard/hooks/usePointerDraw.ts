@@ -17,6 +17,7 @@ import type {
   Element,
 } from "../models/element";
 import { hitTestElement } from "../engine/shapes/shapeRegistry";
+import { useTextEditorStore } from "../store/textEditorStore";
 
 export function usePointerDraw() {
   const engineRef = useRef(new DrawingEngine());
@@ -132,6 +133,11 @@ export function usePointerDraw() {
     //Arrow
     if (tool === "arrow") {
       engineRef.current.startArrow(point, color, width);
+    }
+
+    // Text tool - now start editing on pointer UP to avoid immediate blur
+    if (tool === "text") {
+      return;
     }
   }
 
@@ -279,7 +285,6 @@ export function usePointerDraw() {
     }
 
     engineRef.current.addPoint(point);
-    console.log(engineRef.current.getCurrentArrow());
   }
 
   /*
@@ -289,6 +294,19 @@ export function usePointerDraw() {
   */
 
   function handlePointerUp() {
+    const tool = useToolStore.getState().tool;
+
+    // For text tool, start DOM editing on pointer up at the last point.
+    if (tool === "text" && lastPointRef.current) {
+      const point = lastPointRef.current;
+      useTextEditorStore.getState().startEditing(point.x, point.y);
+
+      dragRef.current = false;
+      lastPointRef.current = null;
+      resizeHandleRef.current = null;
+      return;
+    }
+
     dragRef.current = false;
     lastPointRef.current = null;
     resizeHandleRef.current = null;
@@ -296,6 +314,7 @@ export function usePointerDraw() {
     const element = engineRef.current.endStroke();
     const rect = engineRef.current.endRectangle();
     const arrow = engineRef.current.endArrow();
+    const text = engineRef.current.endText();
 
     if (rect) {
       addElement(rect);
@@ -343,6 +362,11 @@ export function usePointerDraw() {
     //Arrow
     if (arrow) {
       useBoardStore.getState().addElement(arrow);
+    }
+
+    //Text
+    if (text) {
+      addElement(text);
     }
   }
 

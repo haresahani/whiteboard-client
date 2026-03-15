@@ -1,11 +1,12 @@
 import { create } from "zustand";
 
-export type ToolType = 
-| "pen" 
-| "eraser" 
-| "select" 
-| "rectangle"
-| "arrow";
+export type ToolType =
+  | "pen"
+  | "eraser"
+  | "select"
+  | "rectangle"
+  | "arrow"
+  | "text";
 
 type ToolState = {
   tool: ToolType;

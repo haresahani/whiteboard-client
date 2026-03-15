@@ -3,6 +3,7 @@ import type { Shape } from "./Shape";
 import { strokeShape } from "./strokeShape";
 import { rectangleShape } from "./rectangleShape";
 import { arrowShape } from "./arrowShape";
+import { textShape } from "./textShape";
 
 type ShapeMap = Partial<Record<ElementType, Shape<Element>>>;
 
@@ -10,6 +11,7 @@ const registry: ShapeMap = {
   stroke: strokeShape,
   rectangle: rectangleShape,
   arrow: arrowShape,
+  text: textShape,
 };
 
 export function getShape(type: ElementType): Shape<Element> | undefined {
@@ -19,7 +21,7 @@ export function getShape(type: ElementType): Shape<Element> | undefined {
 export function drawElement(
   ctx: CanvasRenderingContext2D,
   element: Element,
-  selected: boolean
+  selected: boolean,
 ) {
   const shape = getShape(element.type);
   if (!shape) return;
@@ -29,7 +31,7 @@ export function drawElement(
 export function hitTestElement(
   x: number,
   y: number,
-  element: Element
+  element: Element,
 ): boolean {
   const shape = getShape(element.type);
   if (!shape || !shape.hitTest) return false;

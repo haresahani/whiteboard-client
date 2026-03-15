@@ -13,6 +13,7 @@ import {
 } from "../../engine/geometry/resizeHandles";
 import { getSelectionBounds } from "../../engine/geometry/bounds";
 import type { Element } from "../../models/element";
+import TextEditor from "../overlays/TextEditor";
 
 export default function WhiteboardCanvas() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -71,13 +72,11 @@ export default function WhiteboardCanvas() {
     let animationFrameId: number;
 
     const render = () => {
-      // const tempStroke = engineRef.current.getCurrentStroke();
-      // const tempRectangle = engineRef.current.getCurrentRectangle();
-      // const tempArrow = engineRef.current.getCurrentArrow();
       const tempElement =
         engineRef.current.getCurrentStroke() ||
         engineRef.current.getCurrentRectangle() ||
-        engineRef.current.getCurrentArrow();
+        engineRef.current.getCurrentArrow() ||
+        engineRef.current.getCurrentText();
 
       renderElements(
         ctx,
@@ -173,19 +172,23 @@ export default function WhiteboardCanvas() {
         : "crosshair";
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="w-screen h-screen bg-white"
-      style={{ cursor }}
-      onWheel={handleWheel}
-      onPointerDown={handlePointerDown}
-      onPointerMove={(e) => {
-        handleHover(e);
-        handlePointerMove(e);
-        handlePan(e);
-      }}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
-    />
+    <div className="w-screen h-screen relative">
+      <canvas
+        ref={canvasRef}
+        className="w-screen h-screen bg-white"
+        style={{ cursor }}
+        onWheel={handleWheel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={(e) => {
+          handleHover(e);
+          handlePointerMove(e);
+          handlePan(e);
+        }}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+      />
+
+      <TextEditor />
+    </div>
   );
 }

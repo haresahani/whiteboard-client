@@ -2,6 +2,7 @@ import type {
   StrokeElement,
   RectangleElement,
   ArrowElement,
+  TextElement,
   Point,
 } from "../models/element";
 import { generateUUID } from "../../../lib/utils";
@@ -10,6 +11,7 @@ export class DrawingEngine {
   private currentStroke: StrokeElement | null = null;
   private currentRectangle: RectangleElement | null = null;
   private currentArrow: ArrowElement | null = null;
+  private currentText: TextElement | null = null;
 
   /*
   ----------------------------------------
@@ -141,5 +143,55 @@ export class DrawingEngine {
   //Getter
   getCurrentArrow() {
     return this.currentArrow;
+  }
+
+  //Start Text
+  startText(point: Point, color: string) {
+    const defaultText = "Text";
+    const fontSize = 20;
+
+    this.currentText = {
+      id: generateUUID(),
+      type: "text",
+
+      x: point.x,
+      y: point.y,
+
+      text: defaultText,
+
+      width: defaultText.length * (fontSize * 0.6),
+      height: fontSize,
+
+      fontSize,
+
+      style: {
+        strokeColor: color,
+        strokeWidth: 1,
+      },
+
+      zIndex: 0,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+  }
+
+  //Update text
+  updateText(text: string) {
+    if (!this.currentText) return;
+
+    this.currentText.text = text;
+    this.currentText.updatedAt = Date.now();
+  }
+
+  //End Text
+  endText() {
+    const text = this.currentText;
+    this.currentText = null;
+    return text;
+  }
+
+  //Getter
+  getCurrentText() {
+    return this.currentText;
   }
 }

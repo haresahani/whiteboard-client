@@ -38,9 +38,7 @@ export default function Toolbar() {
       <button
         onClick={() => setTool("rectangle")}
         className={
-          tool === "rectangle"
-            ? "bg-blue-500 px-3 py-1 rounded"
-            : "px-3 py-1"
+          tool === "rectangle" ? "bg-blue-500 px-3 py-1 rounded" : "px-3 py-1"
         }
       >
         Rectangle
@@ -54,6 +52,16 @@ export default function Toolbar() {
         }
       >
         Arrow
+      </button>
+
+      {/* Text */}
+      <button
+        onClick={() => setTool("text")}
+        className={
+          tool === "text" ? "bg-blue-500 px-3 py-1 rounded" : "px-3 py-1"
+        }
+      >
+        Text
       </button>
 
       {/* Eraser */}
