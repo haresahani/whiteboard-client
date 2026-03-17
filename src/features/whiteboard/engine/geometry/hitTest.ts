@@ -42,9 +42,8 @@ export function hitTestRectangle(
   x: number,
   y: number,
   rect: RectangleElement,
-  strokeThreshold = 6
 ) {
-  const { x: rx, y: ry, width, height, style } = rect;
+  const { x: rx, y: ry, width, height } = rect;
 
   const minX = Math.min(rx, rx + width);
   const maxX = Math.max(rx, rx + width);
@@ -55,18 +54,7 @@ export function hitTestRectangle(
     return false;
   }
 
-  const hasFill =
-    style.fillColor !== undefined &&
-    style.fillColor !== "transparent";
-
-  if (hasFill) {
-    return true;
-  }
-
-  const onLeft = Math.abs(x - minX) <= strokeThreshold;
-  const onRight = Math.abs(x - maxX) <= strokeThreshold;
-  const onTop = Math.abs(y - minY) <= strokeThreshold;
-  const onBottom = Math.abs(y - maxY) <= strokeThreshold;
-
-  return onLeft || onRight || onTop || onBottom;
+  // For interaction (select/drag), treat the entire rectangle bounds as hittable.
+  // Stroke-only selection tends to feel broken in editors.
+  return true;
 }

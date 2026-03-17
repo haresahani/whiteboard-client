@@ -7,6 +7,7 @@ type BoardState = {
 
   addElement: (element: Element) => void;
   setElements: (elements: Element[]) => void;
+  updateElement: (id: string, updater: (el: Element) => Element) => void;
 
   undo: () => void;
   redo: () => void;
@@ -24,6 +25,15 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   setElements: (elements) => set({ elements }),
+
+  updateElement: (id, updater) => {
+    const prev = get().elements;
+    const next = prev.map((el) => (el.id === id ? updater(el) : el));
+
+    if (next === prev) return;
+    useHistoryStore.getState().push(prev);
+    set({ elements: next });
+  },
 
   undo: () => {
     const current = get().elements;

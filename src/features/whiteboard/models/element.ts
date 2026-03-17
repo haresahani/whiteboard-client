@@ -48,13 +48,26 @@ export interface RectangleElement extends BaseElement {
   style: ElementStyle
 }
 
+export interface ArrowBinding {
+  elementId: string;
+  anchor: {
+    x: number;
+    y: number;
+  }
+}
+
 export interface ArrowElement extends BaseElement {
   type: "arrow"
 
-  start: Point
-  end: Point
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
 
   style: ElementStyle
+
+  startBinding?: ArrowBinding;
+  endBinding?: ArrowBinding;
 }
 
 export interface TextElement extends BaseElement {

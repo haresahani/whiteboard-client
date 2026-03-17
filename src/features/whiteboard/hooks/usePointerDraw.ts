@@ -18,6 +18,9 @@ import type {
 } from "../models/element";
 import { hitTestElement } from "../engine/shapes/shapeRegistry";
 import { useTextEditorStore } from "../store/textEditorStore";
+import { findBindableElement } from "../engine/bindings/findBindableElement";
+import { computeBindingAnchor } from "../engine/bindings/arrowBinding";
+import { updateAllArrowBindings } from "../tools/selectTool";
 
 export function usePointerDraw() {
   const engineRef = useRef(new DrawingEngine());
@@ -141,6 +144,38 @@ export function usePointerDraw() {
     }
   }
 
+  function handleDoubleClick(e: React.MouseEvent<HTMLCanvasElement>) {
+    const tool = useToolStore.getState().tool;
+    if (tool !== "select") return;
+
+    const { offsetX, offsetY, zoom } = useViewportStore.getState();
+
+    const screenX = e.nativeEvent.offsetX;
+    const screenY = e.nativeEvent.offsetY;
+
+    const point = {
+      x: (screenX - offsetX) / zoom,
+      y: (screenY - offsetY) / zoom,
+    };
+
+    const elements = useBoardStore.getState().elements as Element[];
+
+    const hit = [...elements]
+      .slice()
+      .reverse()
+      .find((el) => hitTestElement(point.x, point.y, el));
+
+    if (hit?.type !== "text") return;
+
+    useSelectionStore.getState().setSelection([hit.id]);
+    useTextEditorStore.getState().startEditing({
+      elementId: hit.id,
+      x: hit.x,
+      y: hit.y,
+      initial: hit.text,
+    });
+  }
+
   /*
   --------------------------------
   Pointer Move
@@ -171,49 +206,102 @@ export function usePointerDraw() {
       const handle = resizeHandleRef.current;
 
       useBoardStore.setState((state) => ({
-        elements: state.elements.map((el) => {
-          if (!selectedIds.includes(el.id)) return el;
+        elements: updateAllArrowBindings(
+          state.elements.map((el) => {
+            if (!selectedIds.includes(el.id)) return el;
 
-          if (el.type !== "rectangle") return el;
+            if (el.type === "rectangle") {
+              let { x, y, width, height } = el;
 
-          let { x, y, width, height } = el;
+              if (handle.includes("w")) {
+                x += dx;
+                width -= dx;
+              }
+              if (handle.includes("e")) {
+                width += dx;
+              }
+              if (handle.includes("n")) {
+                y += dy;
+                height -= dy;
+              }
+              if (handle.includes("s")) {
+                height += dy;
+              }
 
-          if (handle.includes("w")) {
-            x += dx;
-            width -= dx;
-          }
-          if (handle.includes("e")) {
-            width += dx;
-          }
-          if (handle.includes("n")) {
-            y += dy;
-            height -= dy;
-          }
-          if (handle.includes("s")) {
-            height += dy;
-          }
+              if (width < 0) {
+                x += width;
+                width = Math.abs(width);
+              }
 
-          if (width < 0) {
-            x += width;
-            width = Math.abs(width);
-          }
+              if (height < 0) {
+                y += height;
+                height = Math.abs(height);
+              }
 
-          if (height < 0) {
-            y += height;
-            height = Math.abs(height);
-          }
+              const updated: RectangleElement = {
+                ...el,
+                x,
+                y,
+                width,
+                height,
+                updatedAt: Date.now(),
+              };
 
-          const updated: RectangleElement = {
-            ...el,
-            x,
-            y,
-            width,
-            height,
-            updatedAt: Date.now(),
-          };
+              return updated;
+            }
 
-          return updated;
-        }),
+            if (el.type === "arrow") {
+              // Resizing an arrow edits its endpoints; detach any bindings.
+              const x1 = el.x1;
+              const y1 = el.y1;
+              const x2 = el.x2;
+              const y2 = el.y2;
+
+              const x1IsMin = x1 <= x2;
+              const y1IsMin = y1 <= y2;
+
+              let nx1 = x1;
+              let ny1 = y1;
+              let nx2 = x2;
+              let ny2 = y2;
+
+              if (handle.includes("w")) {
+                if (x1IsMin) nx1 += dx;
+                else nx2 += dx;
+              }
+              if (handle.includes("e")) {
+                if (x1IsMin) nx2 += dx;
+                else nx1 += dx;
+              }
+              if (handle.includes("n")) {
+                if (y1IsMin) ny1 += dy;
+                else ny2 += dy;
+              }
+              if (handle.includes("s")) {
+                if (y1IsMin) ny2 += dy;
+                else ny1 += dy;
+              }
+
+              const minX = Math.min(nx1, nx2);
+              const minY = Math.min(ny1, ny2);
+
+              return {
+                ...el,
+                x1: nx1,
+                y1: ny1,
+                x2: nx2,
+                y2: ny2,
+                x: minX,
+                y: minY,
+                startBinding: undefined,
+                endBinding: undefined,
+                updatedAt: Date.now(),
+              };
+            }
+
+            return el;
+          }),
+        ),
       }));
 
       lastPointRef.current = point;
@@ -227,30 +315,57 @@ export function usePointerDraw() {
       const dy = snapped.y - lastPointRef.current.y;
 
       useBoardStore.setState((state) => ({
-        elements: state.elements.map((el) => {
-          if (!selectedIds.includes(el.id)) return el;
+        elements: updateAllArrowBindings(
+          state.elements.map((el) => {
+            if (!selectedIds.includes(el.id)) return el;
 
-          if (el.type === "stroke") {
-            return {
-              ...el,
-              points: el.points.map((p) => ({
-                x: p.x + dx,
-                y: p.y + dy,
-              })),
-            } as StrokeElement;
-          }
+            if (el.type === "stroke") {
+              return {
+                ...el,
+                points: el.points.map((p) => ({
+                  x: p.x + dx,
+                  y: p.y + dy,
+                })),
+                updatedAt: Date.now(),
+              } as StrokeElement;
+            }
 
-          if (el.type === "rectangle") {
-            return {
-              ...el,
-              x: el.x + dx,
-              y: el.y + dy,
-              updatedAt: Date.now(),
-            } as RectangleElement;
-          }
+            if (el.type === "rectangle") {
+              return {
+                ...el,
+                x: el.x + dx,
+                y: el.y + dy,
+                updatedAt: Date.now(),
+              } as RectangleElement;
+            }
 
-          return el;
-        }),
+            if (el.type === "text") {
+              return {
+                ...el,
+                x: el.x + dx,
+                y: el.y + dy,
+                updatedAt: Date.now(),
+              };
+            }
+
+            if (el.type === "arrow") {
+              return {
+                ...el,
+                x1: el.x1 + dx,
+                y1: el.y1 + dy,
+                x2: el.x2 + dx,
+                y2: el.y2 + dy,
+                x: el.x + dx,
+                y: el.y + dy,
+                startBinding: undefined,
+                endBinding: undefined,
+                updatedAt: Date.now(),
+              };
+            }
+
+            return el;
+          }),
+        ),
       }));
 
       lastPointRef.current = point;
@@ -299,7 +414,7 @@ export function usePointerDraw() {
     // For text tool, start DOM editing on pointer up at the last point.
     if (tool === "text" && lastPointRef.current) {
       const point = lastPointRef.current;
-      useTextEditorStore.getState().startEditing(point.x, point.y);
+      useTextEditorStore.getState().startEditing({ x: point.x, y: point.y });
 
       dragRef.current = false;
       lastPointRef.current = null;
@@ -361,6 +476,27 @@ export function usePointerDraw() {
 
     //Arrow
     if (arrow) {
+      const elements = useBoardStore.getState().elements as Element[];
+
+      //Start binding
+      const startTarget = findBindableElement(arrow.x1, arrow.y1, elements);
+
+      if (startTarget) {
+        arrow.startBinding = {
+          elementId: startTarget.id,
+          anchor: computeBindingAnchor(startTarget, arrow.x1, arrow.y1),
+        };
+      }
+
+      //End binding
+      const endTarget = findBindableElement(arrow.x2, arrow.y2, elements);
+
+      if (endTarget) {
+        arrow.endBinding = {
+          elementId: endTarget.id,
+          anchor: computeBindingAnchor(endTarget, arrow.x2, arrow.y2),
+        };
+      }
       useBoardStore.getState().addElement(arrow);
     }
 
@@ -375,5 +511,6 @@ export function usePointerDraw() {
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    handleDoubleClick,
   };
 }

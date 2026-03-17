@@ -113,8 +113,10 @@ export class DrawingEngine {
       type: "arrow",
       x: point.x,
       y: point.y,
-      start: point,
-      end: point,
+      x1: point.x,
+      y1: point.y,
+      x2: point.x,
+      y2: point.y,
       rotation: 0,
       zIndex: 0,
       createdAt: Date.now(),
@@ -130,7 +132,9 @@ export class DrawingEngine {
   updateArrow(point: Point) {
     if (!this.currentArrow) return;
 
-    this.currentArrow.end = point;
+    this.currentArrow.x2 = point.x;
+    this.currentArrow.y2 = point.y;
+    this.currentArrow.updatedAt = Date.now();
   }
 
   //End Arrow

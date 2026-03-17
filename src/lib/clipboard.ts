@@ -1,12 +1,12 @@
-import type { Stroke } from "../features/whiteboard/models/stroke";
+import type { StrokeElement } from "../features/whiteboard/models/element";
 
-let clipboardStroke: Stroke | null = null;
+let clipboardStroke: StrokeElement | null = null;
 
-export function copyStroke(stroke: Stroke) {
+export function copyStroke(stroke: StrokeElement) {
   clipboardStroke = stroke;
 }
 
-export function pasteStroke(): Stroke | null {
+export function pasteStroke(): StrokeElement | null {
   if (!clipboardStroke) return null;
 
   return {
@@ -16,5 +16,8 @@ export function pasteStroke(): Stroke | null {
       x: p.x + 20,
       y: p.y + 20,
     })),
+    x: clipboardStroke.x + 20,
+    y: clipboardStroke.y + 20,
+    updatedAt: Date.now(),
   };
 }

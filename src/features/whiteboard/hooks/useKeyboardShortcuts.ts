@@ -5,8 +5,8 @@ import { copyStroke, pasteStroke } from "../../../lib/clipboard";
 export function useKeyboardShortcuts() {
   const undo = useBoardStore((s) => s.undo);
   const redo = useBoardStore((s) => s.redo);
-  const strokes = useBoardStore((s) => s.strokes);
-  const addStroke = useBoardStore((s) => s.addStroke);
+  const elements = useBoardStore((s) => s.elements);
+  const addElement = useBoardStore((s) => s.addElement);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -28,7 +28,7 @@ export function useKeyboardShortcuts() {
       if (e.key === "c") {
         e.preventDefault();
 
-        const lastStroke = strokes[strokes.length - 1];
+        const lastStroke = [...elements].reverse().find((el) => el.type === "stroke");
         if (lastStroke) {
           copyStroke(lastStroke);
         }
@@ -39,7 +39,7 @@ export function useKeyboardShortcuts() {
 
         const stroke = pasteStroke();
         if (stroke) {
-          addStroke(stroke);
+          addElement(stroke);
         }
       }
     }
@@ -47,5 +47,5 @@ export function useKeyboardShortcuts() {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo, strokes, addStroke]);
+  }, [undo, redo, elements, addElement]);
 }

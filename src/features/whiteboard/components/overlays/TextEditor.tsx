@@ -8,9 +8,10 @@ import { generateUUID } from "../../../../lib/utils";
 
 export default function TextEditor() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { isEditing, x, y, value, setValue, stopEditing } =
+  const { isEditing, elementId, x, y, value, setValue, stopEditing } =
     useTextEditorStore();
   const addElement = useBoardStore((s) => s.addElement);
+  const updateElement = useBoardStore((s) => s.updateElement);
   const { offsetX, offsetY, zoom } = useViewportStore();
   const color = useToolStore((s) => s.color);
 
@@ -53,24 +54,42 @@ export default function TextEditor() {
       height = lines.length * lineHeight;
     }
 
-    addElement({
-      id: generateUUID(),
-      type: "text",
-      x,
-      y,
-      text: value,
-      width,
-      height,
-      fontSize,
-      fontFamily,
-      style: {
-        strokeColor: color,
-        strokeWidth: 1,
-      },
-      zIndex: 0,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
+    if (elementId) {
+      updateElement(elementId, (el) => {
+        if (el.type !== "text") return el;
+        return {
+          ...el,
+          x,
+          y,
+          text: value,
+          width,
+          height,
+          fontSize,
+          fontFamily,
+          // keep existing style unless you want editing to recolor
+          updatedAt: Date.now(),
+        };
+      });
+    } else {
+      addElement({
+        id: generateUUID(),
+        type: "text",
+        x,
+        y,
+        text: value,
+        width,
+        height,
+        fontSize,
+        fontFamily,
+        style: {
+          strokeColor: color,
+          strokeWidth: 1,
+        },
+        zIndex: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+    }
 
     stopEditing();
   }

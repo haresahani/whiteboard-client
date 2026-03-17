@@ -33,8 +33,13 @@ export default function WhiteboardCanvas() {
 
   const [hoverHandle, setHoverHandle] = useState<Handle | null>(null);
 
-  const { engineRef, handlePointerDown, handlePointerMove, handlePointerUp } =
-    usePointerDraw();
+  const {
+    engineRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleDoubleClick,
+  } = usePointerDraw();
 
   /*
   ----------------------------------
@@ -178,6 +183,7 @@ export default function WhiteboardCanvas() {
         className="w-screen h-screen bg-white"
         style={{ cursor }}
         onWheel={handleWheel}
+        onDoubleClick={handleDoubleClick}
         onPointerDown={handlePointerDown}
         onPointerMove={(e) => {
           handleHover(e);
