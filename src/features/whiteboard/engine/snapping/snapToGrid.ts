@@ -1,17 +1,15 @@
-export function snapToGrid(
-  x: number,
-  y: number,
-  gridSize = 40,
-  threshold = 8
-) {
-  const gridX = Math.round(x / gridSize) * gridSize
-  const gridY = Math.round(y / gridSize) * gridSize
+const GRID_SIZE = 10;
+const SNAP_THRESHOLD = 5;
 
-  const snappedX =
-    Math.abs(x - gridX) < threshold ? gridX : x
+export function snapToGrid(x: number, y: number) {
+  const gridX = Math.round(x / GRID_SIZE) * GRID_SIZE;
+  const gridY = Math.round(y / GRID_SIZE) * GRID_SIZE;
 
-  const snappedY =
-    Math.abs(y - gridY) < threshold ? gridY : y
+  const snapX = Math.abs(x - gridX) < SNAP_THRESHOLD ? gridX : x;
+  const snapY = Math.abs(y - gridY) < SNAP_THRESHOLD ? gridY : y;
 
-  return { x: snappedX, y: snappedY }
+  return {
+    x: snapX,
+    y: snapY,
+  };
 }
