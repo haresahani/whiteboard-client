@@ -3,185 +3,142 @@
 2. AI - give drawing prompt and that ai will draw that drawing.
 
 
+# Element
+ellipse
+diamond
+line
+polygon
+image
+video
+sticky notes
+frames
+groups
+connectors
+mindmap nodes
+flowchart blocks
 
 
-client/
+
+client
+├── .gitignore
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package.json
+├── pnpm-lock.yaml
+├── src
+│   ├── api
+│   │   ├── auth.ts
+│   │   ├── boards.ts
+│   │   ├── client.ts
+│   │   └── ws.ts
+│   │
+│   ├── app
+│   │   ├── App.tsx
+│   │   ├── providers.tsx
+│   │   └── router.tsx
+│   │
+│   ├── features
+│   │   └── whiteboard
+│   │       ├── components
+│   │       │   ├── WhiteboardPage.tsx
+│   │       │   ├── canvas
+│   │       │   │   └── WhiteboardCanvas.tsx
+│   │       │   ├── overlays
+│   │       │   │   ├── PresenceCursor.tsx
+│   │       │   │   ├── SelectionBox.tsx
+│   │       │   │   └── TextEditor.tsx
+│   │       │   └── toolbar
+│   │       │       └── Toolbar.tsx
+│   │       │
+│   │       ├── engine
+│   │       │   ├── drawingEngine.ts
+│   │       │   ├── grid.ts
+│   │       │   ├── renderer.ts
+│   │       │   ├── smoothing.ts
+│   │       │
+│   │       │   ├── geometry
+│   │       │   │   ├── bounds.ts
+│   │       │   │   ├── hitTest.ts
+│   │       │   │   ├── intersects.ts
+│   │       │   │   └── resizeHandles.ts
+│   │       │
+│   │       │   ├── operations
+│   │       │   │   ├── applyOperation.ts
+│   │       │   │   ├── replayOperations.ts
+│   │       │   │   └── serializeOperation.ts
+│   │       │
+│   │       │   ├── shapes
+│   │       │   │   ├── Shape.ts
+│   │       │   │   ├── arrowShape.ts
+│   │       │   │   ├── rectangleShape.ts
+│   │       │   │   ├── shapeRegistry.ts
+│   │       │   │   ├── strokeShape.ts
+│   │       │   │   └── textShape.ts
+│   │       │
+│   │       │   └── snapping
+│   │       │       ├── snapGuids.ts
+│   │       │       ├── snapToElements.ts
+│   │       │       └── snapToGrid.ts
+│   │
+│   │       ├── hooks
+│   │       │   ├── useCanvas.ts
+│   │       │   ├── useKeyboardShortcuts.ts
+│   │       │   └── usePointerDraw.ts
+│   │
+│   │       ├── models
+│   │       │   ├── boardModel.ts
+│   │       │   ├── element.ts
+│   │       │   └── stroke.ts
+│   │
+│   │       ├── store
+│   │       │   ├── boardStore.ts
+│   │       │   ├── historyStore.ts
+│   │       │   ├── selectionStore.ts
+│   │       │   ├── textEditorStore.ts
+│   │       │   ├── toolStore.ts
+│   │       │   └── viewportStore.ts
+│   │
+│   │       ├── tools
+│   │       │   ├── eraserTool.ts
+│   │       │   ├── penTool.ts
+│   │       │   └── selectTool.ts
+│   │
+│   │       ├── types
+│   │       │   └── whiteboardTypes.ts
+│   │
+│   │       └── utils
+│   │           └── snapshotStorage.ts
 │
-├── public/
+│   ├── hooks
+│   │   ├── useAuth.ts
+│   │   ├── useMobile.ts
+│   │   └── useWebSocket.ts
 │
-├── src/
+│   ├── lib
+│   │   ├── clipboard.ts
+│   │   ├── logger.ts
+│   │   └── utils.ts
 │
-│  ├── app/
-│  │   ├── App.tsx
-│  │   ├── providers.tsx
-│  │   └── router.tsx
+│   ├── main.tsx
 │
-│  ├── api/
-│  │   ├── client.ts
-│  │   ├── auth.ts
-│  │   ├── boards.ts
-│  │   └── ws.ts
+│   ├── pages
+│   │   ├── Index.tsx
+│   │   ├── Login.tsx
+│   │   ├── NotFound.tsx
+│   │   └── Signup.tsx
 │
-│  ├── features/
-│  │
-│  │   └── whiteboard/
-│  │
-│  │        ├── components/
-│  │        │
-│  │        │   ├── canvas/
-│  │        │   │   └── CanvasBoard.tsx
-│  │        │   │
-│  │        │   ├── overlays/
-│  │        │   │   ├── SelectionBox.tsx
-│  │        │   │   └── PresenceCursor.tsx
-│  │        │   │
-│  │        │   ├── toolbar/
-│  │        │   │   └── Toolbar.tsx
-│  │        │   │
-│  │        │   └── WhiteboardPage.tsx
-│  │
-│  │        ├── engine/
-│  │        │
-│  │        │   ├── drawingEngine.ts
-│  │        │   ├── renderer.ts
-│  │        │   ├── smoothing.ts
-│  │        │
-│  │        │   ├── geometry/
-│  │        │   │   ├── hitTest.ts
-│  │        │   │   ├── transform.ts
-│  │        │   │   └── bounds.ts
-│  │        │
-│  │        │   └── operations/
-│  │        │       ├── applyOperation.ts
-│  │        │       ├── serializeOperation.ts
-│  │        │       └── replayOperations.ts
-│  │
-│  │        ├── hooks/
-│  │        │   ├── useCanvas.ts
-│  │        │   ├── usePointerDraw.ts
-│  │        │   └── useKeyboardShortcuts.ts
-│  │
-│  │        ├── models/
-│  │        │   ├── element.ts
-│  │        │   ├── stroke.ts
-│  │        │   └── board.ts
-│  │
-│  │        ├── store/
-│  │        │   ├── boardStore.ts
-│  │        │   ├── historyStore.ts
-│  │        │   ├── toolStore.ts
-│  │        │   └── viewportStore.ts
-│  │
-│  │        ├── tools/
-│  │        │   ├── penTool.ts
-│  │        │   ├── eraserTool.ts
-│  │        │   └── selectTool.ts
-│  │
-│  │        ├── utils/
-│  │        │   ├── geometry.ts
-│  │        │   └── snapshotStorage.ts
-│  │
-│  │        └── types/
-│  │            └── whiteboardTypes.ts
-│  │
-│  ├── hooks/
-│  │   ├── useAuth.ts
-│  │   ├── useWebSocket.ts
-│  │   └── useMobile.ts
-│  │
-│  ├── lib/
-│  │   ├── clipboard.ts
-│  │   ├── utils.ts
-│  │   └── logger.ts
-│  │
-│  ├── pages/
-│  │   ├── Index.tsx
-│  │   ├── Login.tsx
-│  │   ├── Signup.tsx
-│  │   └── NotFound.tsx
-│  │
-│  ├── types/
-│  │   ├── auth.ts
-│  │   └── protocol.ts
-│  │
-│  ├── styles/
-│  │   ├── globals.css
-│  │   └── tailwind.css
-│  │
-│  ├── main.tsx
-│  └── vite-env.d.ts
+│   ├── styles
+│   │   ├── globals.css
+│   │   └── tailwind.css
 │
-├── tests/
+│   ├── types
+│   │   ├── auth.ts
+│   │   └── protocol.ts
 │
-└── package.json
-
-
-
-
-
-
-
-
-
-
-
-
-
-features/whiteboard
-
-components/
-  canvas/
-    WhiteboardCanvas.tsx
-
-  overlays/
-    SelectionBox.tsx
-    PresenceCursor.tsx
-
-  toolbar/
-    Toolbar.tsx
-
-pages/
-  WhiteboardPage.tsx
-
-engine/
-  drawingEngine.ts
-  renderer.ts
-  smoothing.ts
-
-  geometry/
-    hitTest.ts
-    transform.ts
-    bounds.ts
-    geometry.ts
-
-  operations/
-    applyOperation.ts
-    serializeOperation.ts
-    replayOperations.ts
-
-hooks/
-  useCanvas.ts
-  usePointerDraw.ts
-  useKeyboardShortcuts.ts
-
-models/
-  element.ts
-  stroke.ts
-  boardModel.ts
-
-store/
-  boardStore.ts
-  historyStore.ts
-  toolStore.ts
-  viewportStore.ts
-
-tools/
-  penTool.ts
-  eraserTool.ts
-  selectTool.ts
-
-utils/
-  snapshotStorage.ts
-
-types/
-  whiteboardTypes.ts
+│   └── vite.env.d.ts
+│
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
