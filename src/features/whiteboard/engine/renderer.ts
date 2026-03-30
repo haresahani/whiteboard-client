@@ -3,7 +3,7 @@ import type { Element } from "../models/element";
 import { renderGrid } from "./grid";
 import { getSelectionBounds } from "./geometry/bounds";
 import { useSelectionStore } from "../store/selectionStore";
-import { drawElement} from "./shapes/shapeRegistry";
+import { drawElement } from "./shapes/shapeRegistry";
 
 export function normalizeBox(box: {
   x: number;
@@ -131,8 +131,6 @@ export function renderElements(
 
   renderGrid(ctx, canvas.width, canvas.height, offsetX, offsetY, zoom);
 
-  drawSelectionBox(ctx, elements, selectedIds);
-
   ctx.setTransform(zoom, 0, 0, zoom, offsetX, offsetY);
 
   for (const element of elements) {
@@ -142,12 +140,10 @@ export function renderElements(
 
   // Renderer temporary element
   if (tempElement) {
-    // const shape = getShape(tempElement.type);
-    // if (shape) {
-    //   shape.draw(ctx, tempElement, false);
-    // }
     drawElement(ctx, tempElement, false);
   }
+
+  drawSelectionBox(ctx, elements, selectedIds);
 
   const marquee = useSelectionStore.getState().marquee;
   if (marquee) {

@@ -4,32 +4,32 @@ export function renderGrid(
   height: number,
   offsetX: number,
   offsetY: number,
-  zoom: number
+  zoom: number,
 ) {
-  const gridSize = 40 * zoom;
+  const gridSize = Math.max(22 * zoom, 18);
+  const majorEvery = 4;
 
   ctx.save();
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-  ctx.strokeStyle = "#e5e5e5";
-  ctx.lineWidth = 1;
-
   const startX = offsetX % gridSize;
   const startY = offsetY % gridSize;
 
+  let columnIndex = 0;
   for (let x = startX; x < width; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-  }
+    let rowIndex = 0;
+    for (let y = startY; y < height; y += gridSize) {
+      const isMajor = columnIndex % majorEvery === 0 && rowIndex % majorEvery === 0;
+      const radius = isMajor ? 1.35 : 0.7;
 
-  for (let y = startY; y < height; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.fillStyle = isMajor ? "rgba(151, 123, 84, 0.22)" : "rgba(151, 123, 84, 0.12)";
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      rowIndex += 1;
+    }
+    columnIndex += 1;
   }
 
   ctx.restore();

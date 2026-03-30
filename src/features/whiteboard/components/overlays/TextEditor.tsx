@@ -100,6 +100,7 @@ export default function TextEditor() {
 
   return (
     <textarea
+      className="whiteboard-text-editor"
       ref={textareaRef}
       value={value}
       onChange={(e) => {
@@ -124,11 +125,9 @@ export default function TextEditor() {
         zIndex: 10,
         fontSize: 20,
         fontFamily: "Virgil",
-        border: "1px solid #888",
         outline: "none",
         resize: "none",
         overflow: "hidden",
-        background: "white",
         color: color,
         minWidth: 40,
         minHeight: 20,

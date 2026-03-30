@@ -4,6 +4,7 @@ import { useBoardStore } from "../store/boardStore";
 import { useToolStore } from "../store/toolStore";
 import { useViewportStore } from "../store/viewportStore";
 import { useSelectionStore } from "../store/selectionStore";
+import { useHistoryStore } from "../store/historyStore";
 import { getSelectionBounds, getBounds } from "../engine/geometry/bounds";
 import {
   getHandleUnderPoint,
@@ -20,17 +21,21 @@ import { hitTestElement } from "../engine/shapes/shapeRegistry";
 import { useTextEditorStore } from "../store/textEditorStore";
 import { findBindableElement } from "../engine/bindings/findBindableElement";
 import { computeBindingAnchor } from "../engine/bindings/arrowBinding";
+import { getElementsTouchedByEraser, getEraserRadius } from "../tools/eraser";
 import { updateAllArrowBindings } from "../tools/selectTool";
 
 export function usePointerDraw() {
   const engineRef = useRef(new DrawingEngine());
 
   const addElement = useBoardStore((s) => s.addElement);
+  const setElements = useBoardStore((s) => s.setElements);
 
   const dragRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
   const resizeHandleRef = useRef<Handle | null>(null);
   const marqueeActiveRef = useRef(false);
+  const eraseSnapshotRef = useRef<Element[] | null>(null);
+  const eraseCommittedRef = useRef(false);
 
   const selectedIds = useSelectionStore((s) => s.selectedIds);
   const marquee = useSelectionStore((s) => s.marquee);
@@ -39,6 +44,28 @@ export function usePointerDraw() {
   const tool = useToolStore((s) => s.tool);
   const color = useToolStore((s) => s.color);
   const width = useToolStore((s) => s.width);
+
+  function eraseAtPoint(point: { x: number; y: number }) {
+    const radius = getEraserRadius(width);
+    const currentElements = useBoardStore.getState().elements as Element[];
+    const touchedElements = getElementsTouchedByEraser(currentElements, point, radius);
+
+    if (touchedElements.length === 0) return;
+
+    if (!eraseCommittedRef.current) {
+      useHistoryStore.getState().push(eraseSnapshotRef.current ?? currentElements);
+      eraseCommittedRef.current = true;
+    }
+
+    const touchedIds = new Set(touchedElements.map((element) => element.id));
+
+    setElements(currentElements.filter((element) => !touchedIds.has(element.id)));
+
+    const nextSelection = useSelectionStore
+      .getState()
+      .selectedIds.filter((id) => !touchedIds.has(id));
+    useSelectionStore.getState().setSelection(nextSelection);
+  }
 
   /*
   --------------------------------
@@ -121,7 +148,10 @@ export function usePointerDraw() {
     */
 
     if (tool === "eraser") {
-      engineRef.current.startStroke(point, "eraser", width * 4);
+      eraseSnapshotRef.current = elements;
+      eraseCommittedRef.current = false;
+      eraseAtPoint(point);
+      return;
     }
 
     /*
@@ -378,6 +408,13 @@ export function usePointerDraw() {
       return;
     }
 
+    if (tool === "eraser") {
+      if (e.buttons === 1) {
+        eraseAtPoint(point);
+      }
+      return;
+    }
+
     // update marquee while dragging
     if (tool === "select" && marqueeActiveRef.current && marquee) {
       setMarquee({
@@ -410,6 +447,15 @@ export function usePointerDraw() {
 
   function handlePointerUp() {
     const tool = useToolStore.getState().tool;
+
+    if (tool === "eraser") {
+      dragRef.current = false;
+      lastPointRef.current = null;
+      resizeHandleRef.current = null;
+      eraseSnapshotRef.current = null;
+      eraseCommittedRef.current = false;
+      return;
+    }
 
     // For text tool, start DOM editing on pointer up at the last point.
     if (tool === "text" && lastPointRef.current) {
