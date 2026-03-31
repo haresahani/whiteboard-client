@@ -5,7 +5,7 @@ import { cn } from "../../../lib/utils";
 import WhiteboardCanvas from "./canvas/WhiteboardCanvas";
 import BoardSettingsPanel from "./layout/BoardSettingsPanel";
 import BottomToolbar from "./layout/BottomToolbar";
-import LeftToolbar from "./layout/LeftToolbar";
+import LeftToolbar from "./layout/lefttool";
 import RightPanel from "./layout/RightPanel";
 import TopNavigation from "./layout/TopNavigation";
 import WorkspaceOverlay from "./overlays/WorkspaceOverlay";
@@ -32,6 +32,7 @@ export default function WhiteboardPage() {
   const [boardName, setBoardName] = useState("Sprint Planning - Q3");
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const [isLefttoolSurfaceOpen, setIsLefttoolSurfaceOpen] = useState(false);
   const [notice, setNotice] = useState<WhiteboardNotice | null>(null);
 
   const pushNotice = useCallback(
@@ -98,6 +99,7 @@ export default function WhiteboardPage() {
 
   const handleCanvasInteract = useCallback(() => {
     setIsToolsOpen(false);
+    setIsLefttoolSurfaceOpen(false);
     setActivePanel((current) => (current === "info" ? null : current));
   }, []);
 
@@ -145,7 +147,15 @@ export default function WhiteboardPage() {
         aria-label="Close tools"
       />
 
-      <LeftToolbar isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
+      <LeftToolbar
+        isOpen={isToolsOpen}
+        isSurfaceOpen={isLefttoolSurfaceOpen}
+        onSurfaceOpenChange={setIsLefttoolSurfaceOpen}
+        onClose={() => {
+          setIsToolsOpen(false);
+          setIsLefttoolSurfaceOpen(false);
+        }}
+      />
 
       <RightPanel
         boardId={boardId}

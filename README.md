@@ -1,7 +1,7 @@
 # Future Concept
-1. In Text element area: while typing the software suggest next word
+1. In Text element area: while typing the software suggest next word.
 2. AI - give drawing prompt and that ai will draw that drawing.
-
+3. Edit, Present and History.
 
 # Element
 ellipse
